@@ -18,4 +18,6 @@ script:
     - make deb
     - mkdir /tmp/heka && find . -name "*.deb" -exec cp {} /tmp/heka/heka.deb \;
     - cp ../docker/Dockerfile.travis /tmp/heka/Dockerfile
-    - docker build -t xrlx/heka /tmp/heka
+    - docker build -t xrlx/heka:$TRAVIS_BRANCH /tmp/heka
+    - docker login -e="$DOCKER_EMAIL" -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+    - docker push xrlx/heka
