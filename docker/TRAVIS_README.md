@@ -14,6 +14,11 @@ travis login --org
 travis env set DOCKER_EMAIL $YOUR_DOCKER_ACCT_EMAIL
 travis env set DOCKER_USERNAME $YOUR_DOCKER_ACCT_USERNAME
 travis env set DOCKER_PASSWORD $YOUR_DOCKER_ACCT_PASSWD
+travis env set DOCKER_REPO_SLUG xrlx/heka
 ```
 
 These values are used by the `docker/release_travis.sh`. The unit tests must pass for the docker image to be built.
+
+Docker Images
+---
+
