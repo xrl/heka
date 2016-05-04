@@ -1,10 +1,7 @@
 #!/bin/bash
 set -ex
 
-if [[ $1 == "" ]]; then
-  echo "usage: release_travis.sh DOCKER_REPO_SLUG"
-  exit 1
-elif [[ $DOCKER_REPO_SLUG == "" ]]
+if [[ $DOCKER_REPO_SLUG == "" ]]; then
   echo "must set DOCKER_REPO_SLUG ENV var"
   exit 1
 fi
