@@ -15,4 +15,7 @@ install:
     - . build.sh
 script:
     - make test
-    - cd ../docker && sh build_docker.sh
+    - make deb
+    - mkdir /tmp/heka && find . -name "*.deb" -exec cp {} /tmp/heka/heka.deb \;
+    - cp ../docker/Dockerfile.travis /tmp/heka/Dockerfile
+    - docker build -t xrlx/heka /tmp/heka
