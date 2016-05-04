@@ -7,15 +7,15 @@ if [[ $DOCKER_REPO_SLUG == "" ]]; then
 fi
 
 if [[ $TRAVIS_TAG != "" ]]; then
-  DOCKER_TAG = $TRAVIS_TAG
+  DOCKER_TAG=$TRAVIS_TAG
 elif [[ $TRAVIS_BRANCH != "" ]]; then
-  DOCKER_TAG = $TRAVIS_BRANCH
+  DOCKER_TAG=$TRAVIS_BRANCH
 else
   echo "Skipping docker build because this is a pull request (${TRAVIS_PULL_REQUEST})"
   exit 0
 fi
 
-IMAGE = "${DOCKER_REPO_SLUG}:${TRAVIS_BRANCH}"
+IMAGE="${DOCKER_REPO_SLUG}:${TRAVIS_BRANCH}"
 
 cd $TRAVIS_BUILD_DIR
 mkdir /tmp/heka
