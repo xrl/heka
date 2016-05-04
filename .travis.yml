@@ -15,4 +15,4 @@ install:
     - . build.sh
 script:
     - make test
-    - cd docker && sh build_docker.sh
+    - cd ../docker && sh build_docker.sh
