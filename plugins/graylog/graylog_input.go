@@ -47,10 +47,11 @@ type gelfCtrl struct {
 
 func (g *GraylogInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) (err error) {
 	go func() {
+		GRAYLOG_READ_LOOP:
 		for {
 			select {
 			case <-g.stopChan:
-				break
+				break GRAYLOG_READ_LOOP
 			default:
 				message,err := g.reader.ReadMessage()
 				g.ctrlMsgs <- gelfCtrl {
@@ -58,7 +59,12 @@ func (g *GraylogInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) (er
 					message: message,
 				}
 				if err != nil {
-					break
+					if err.Error() != "out-of-band message (not chunked)" {
+						ir.LogError(err.Error())
+						continue
+					} else {
+						break GRAYLOG_READ_LOOP
+					}
 				}
 			}
 		}
