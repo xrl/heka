@@ -60,7 +60,7 @@ func (g *GraylogInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) (er
 				}
 				if err != nil {
 					if err.Error() != "out-of-band message (not chunked)" {
-						ir.LogError(err.Error())
+						ir.LogError(err)
 						continue
 					} else {
 						break GRAYLOG_READ_LOOP
