@@ -3,6 +3,8 @@ package graylog
 import (
 	"strings"
 
+	"sync/atomic"
+
 	"github.com/pborman/uuid"
 
 	"github.com/mozilla-services/heka/pipeline"
@@ -21,6 +23,9 @@ type GraylogInput struct {
 
 	ctrlMsgs chan gelfCtrl
 	stopChan chan bool
+
+	processMessageCount int64
+	processMessageFailures int64
 }
 
 func (g *GraylogInput) ConfigStruct() interface{} {
@@ -61,12 +66,15 @@ func (g *GraylogInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) (er
 				if err != nil {
 					if err.Error() == "out-of-band message (not chunked)" {
 						ir.LogError(err)
+						atomic.AddInt64(&g.processMessageFailures, 1)
 						err = nil
 						continue
 					} else {
 						break GRAYLOG_READ_LOOP
 					}
 				}
+				atomic.AddInt64(&g.processMessageCount, 1)
+
 			}
 		}
 		close(g.ctrlMsgs)
@@ -110,6 +118,14 @@ func (g *GraylogInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) (er
 	}
 
 	return
+}
+
+func (g *GraylogInput) ReportMsg(msg *message.Message) error {
+	message.NewInt64Field(msg, "ProcessMessageCount",
+		atomic.LoadInt64(&g.processMessageCount), "count")
+	message.NewInt64Field(msg, "ProcessMessageFailures",
+		atomic.LoadInt64(&g.processMessageFailures), "count")
+	return nil
 }
 
 func cleanKeyForKibana(k string) (output string) {
