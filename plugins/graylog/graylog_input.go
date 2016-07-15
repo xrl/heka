@@ -21,7 +21,6 @@ type GraylogInput struct {
 	config *GraylogInputConfig
 	reader *gelf.Reader
 
-	ctrlMsgs chan gelfCtrl
 	stopChan chan bool
 
 	processMessageCount int64
@@ -35,7 +34,6 @@ func (g *GraylogInput) ConfigStruct() interface{} {
 
 func (g *GraylogInput) Init(config interface{}) (err error) {
 	g.config = config.(*GraylogInputConfig)	
-	g.ctrlMsgs = make(chan gelfCtrl)
 	g.stopChan = make(chan bool)
 	g.reader,err = gelf.NewReader(g.config.Address)
 	if err != nil {
@@ -45,76 +43,51 @@ func (g *GraylogInput) Init(config interface{}) (err error) {
 	return
 }
 
-type gelfCtrl struct {
-	err error
-	message *gelf.Message
-}
-
 func (g *GraylogInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) (err error) {
-	go func() {
-		GRAYLOG_READ_LOOP:
-		for {
-			select {
-			case <-g.stopChan:
-				break GRAYLOG_READ_LOOP
-			default:
-				message,err := g.reader.ReadMessage()
-				g.ctrlMsgs <- gelfCtrl {
-					err: err,
-					message: message,
-				}
-				if err != nil {
-					if err.Error() == "out-of-band message (not chunked)" {
-						ir.LogError(err)
-						atomic.AddInt64(&g.processMessageFailures, 1)
-						err = nil
-						continue
-					} else {
-						break GRAYLOG_READ_LOOP
-					}
-				}
-				atomic.AddInt64(&g.processMessageCount, 1)
-
-			}
-		}
-		close(g.ctrlMsgs)
-
-	}()
-
-	MsgLoop:
-	for ctrlMsg := range g.ctrlMsgs {
-		if ctrlMsg.err != nil {
-			ir.LogError(ctrlMsg.err)
-			err = ctrlMsg.err
-			break MsgLoop
-		}
-
-		msg := ctrlMsg.message
-
-		pack := <-ir.InChan()
-		if msg.Full != "" {
-			pack.Message.SetPayload(msg.Full)
-		} else {
-			pack.Message.SetPayload(msg.Short)
-		}
-
-		pack.Message.SetUuid(uuid.NewRandom())
-		pack.Message.SetTimestamp(int64(msg.TimeUnix) * 1000000000)
-		pack.Message.SetType("heka.graylog")
-		pack.Message.SetHostname(msg.Host)
-		pack.Message.SetSeverity(msg.Level)
-		pack.Message.SetLogger(g.config.Address)
-		for k,v := range msg.Extra {
-			cleanedK := cleanKeyForKibana(k)
-			field,err := message.NewField(cleanedK, v, "")
+	GRAYLOG_READ_LOOP:
+	for {
+		select {
+		case <- g.stopChan:
+			break GRAYLOG_READ_LOOP
+		default:
+			msg,err := g.reader.ReadMessage()
 			if err != nil {
-				ir.LogError(err)
-				break MsgLoop
+				if err.Error() == "out-of-band message (not chunked)" {
+					ir.LogError(err)
+					atomic.AddInt64(&g.processMessageFailures, 1)
+					err = nil
+					continue
+				} else {
+					break GRAYLOG_READ_LOOP
+				}
 			}
-			pack.Message.AddField(field)
-		}
+			atomic.AddInt64(&g.processMessageCount, 1)
 
-		ir.Deliver(pack)
+			pack := <-ir.InChan()
+			pack.Message.SetUuid(uuid.NewRandom())
+			pack.Message.SetTimestamp(int64(msg.TimeUnix) * 1000000000)
+			pack.Message.SetType("graylog")
+			pack.Message.SetHostname(msg.Host)
+			pack.Message.SetSeverity(msg.Level)
+			pack.Message.SetLogger(g.config.Address)
+
+			if msg.Full != "" {
+				pack.Message.SetPayload(msg.Full)
+			} else {
+				pack.Message.SetPayload(msg.Short)
+			}
+			for k,v := range msg.Extra {
+				cleanedK := cleanKeyForKibana(k)
+				field,err := message.NewField(cleanedK, v, "")
+				if err != nil {
+					ir.LogError(err)
+					continue
+				}
+				pack.Message.AddField(field)
+			}
+
+			ir.Deliver(pack)
+		}
 	}
 
 	return
