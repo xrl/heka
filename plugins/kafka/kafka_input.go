@@ -269,7 +269,6 @@ func (k *KafkaInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) (err 
 			if !ok {
 				return nil
 			}
-			ir.LogError(fmt.Errorf("received at offset: %d", event.Offset+1))
 			atomic.AddInt64(&k.processMessageCount, 1)
 			if n, err = sRunner.SplitBytes(event.Value, nil); err != nil {
 				ir.LogError(fmt.Errorf("processing message from topic %s: %s",
