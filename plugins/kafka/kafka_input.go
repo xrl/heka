@@ -284,6 +284,7 @@ func (k *KafkaInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) (err 
 		case cError, ok = <-cErrChan:
 			if !ok {
 				// Don't exit until the eventChan is closed.
+				ir.LogError(fmt.Errorf("cErrChan received: %s", cError))
 				ok = true
 				continue
 			}
