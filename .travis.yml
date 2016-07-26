@@ -14,7 +14,7 @@ addons:
 install:
 - ". build.sh"
 script:
-- make test && make deb && ./../docker/release_travis.sh
+- make deb && ./../docker/release_travis.sh
 env:
   global:
     secure: iAasdwwGDJRI3KXuz8fZQxmLRbF8B1mjXMB1MH5kgeoMKZLhG1mqd3ZTcLStuDSk61pPnPEiwIcQdyV7GDc4BEK4GA3l/SF3QXG3/Za0KJdj0mPvVKhBiDXNCgTh3zDZcCVPsQY+tRl/VQKr2kHfHSh0E7C5W3h/YfAZ5C1Dk8zO93KwaEnRh4u83m6R40pfHo/iOIn73yqsXdLWsajeTQpMbWimS3oqOxemz3HXdrxKdFaLNY6F92EC340JiC5d9HBEtXK+vUKCnm5pvMgC82Jeugajzg0XiPhG/tubF7gKBlw+idXaguG8PDSu+ggSzPxDWRClau9gRFltrMGBOdSvifcHfM7SMuy7pk7Z2PryqOUvnhB3Q+WAsxnQCQtHFZYv7pjbKTOx8GJZItBTTfOEzhycVrswXaQBoQny/4CrEqxpUyYYrfaWORBJ6Hceowkj0LhBoWWRr8VE7yXXu59RGPJGLqeeZkQgpbiHsEAHix1JRZ+69epNIMqoGL57nrkVqdSAkW2QsGO65BHEELS/LWkdRr9GISAh65ExOYL1aBn4SSnQUbVKK2wNG79pZYAQUvJCPBir+MeCThtBGn3TFxlFmIoJrQe8oOcX9pF+6lCClihlGJZCWl0mk3GCoGXr1FrB88JLXxvzFCXIXYJNCmYU52pLztP1BbxEPt4=
