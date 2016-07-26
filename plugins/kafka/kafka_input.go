@@ -257,12 +257,14 @@ func (k *KafkaInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) (err 
 		sRunner.SetPackDecorator(packDec)
 	}
 
+	var lastOffset int64
+
 	eventChan := k.partitionConsumer.Messages()
 	cErrChan := k.partitionConsumer.Errors()
 	for {
 		select {
 		case <-time.After(time.Duration(10) * time.Second):
-			ir.LogError(fmt.Errorf("timeout!"))
+			ir.LogError(fmt.Errorf("timeout at offset: %s", lastOffset))
 		case event, ok = <-eventChan:
 			if !ok {
 				return nil
@@ -276,6 +278,8 @@ func (k *KafkaInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) (err 
 				ir.LogError(fmt.Errorf("extra data dropped in message from topic %s",
 					event.Topic))
 			}
+
+			lastOffset = event.Offset
 
 			if k.config.OffsetMethod == "Manual" {
 				if err = k.writeCheckpoint(event.Offset + 1); err != nil {
