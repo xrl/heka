@@ -261,6 +261,8 @@ func (k *KafkaInput) Run(ir pipeline.InputRunner, h pipeline.PluginHelper) (err 
 	cErrChan := k.partitionConsumer.Errors()
 	for {
 		select {
+		case <-time.After(time.Duration(10) * time.Second):
+			ir.LogError(fmt.Errorf("timeout!"))
 		case event, ok = <-eventChan:
 			if !ok {
 				return nil
