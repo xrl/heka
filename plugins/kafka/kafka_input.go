@@ -24,7 +24,7 @@ import (
 	"path/filepath"
 	"sync/atomic"
 	"time"
-	"log"
+	// "log"
 
 	"github.com/Shopify/sarama"
 	"github.com/mozilla-services/heka/message"
@@ -333,7 +333,7 @@ func (k *KafkaInput) CleanupForRestart() {
 }
 
 func init() {
-  	sarama.Logger = log.New(os.Stdout, "[sarama] ", log.LstdFlags)
+  	// sarama.Logger = log.New(os.Stdout, "[sarama] ", log.LstdFlags)
 
 	pipeline.RegisterPlugin("KafkaInput", func() interface{} {
 		return new(KafkaInput)
